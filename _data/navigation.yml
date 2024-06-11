@@ -1,9 +1,9 @@
-docs:
+categories:
   - title: Menu
     children:
       - title: "Automation"
-        url: /docs/automation/
+        url: /categories/automation/
       - title: "Data"
-        url: /docs/data/
+        url: /categories/data/
       - title: "Python"
-        url: /docs/python/
+        url: /categories/python/
