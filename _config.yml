@@ -104,7 +104,7 @@ analytics:
 
 # Site Author
 author:
-  name             : "Tin's De"
+  name             : "Tin's Dev Blog"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
   bio              : "업무 자동화/데이터 분석 개발 노트"
   location         : "Seoul, South Korea"
