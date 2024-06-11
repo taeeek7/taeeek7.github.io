@@ -1,9 +1,28 @@
 categories:
-  - title: Menu
+  - title: Automation
     children:
-      - title: "Automation"
-        url: /categories/automation/
-      - title: "Data"
-        url: /categories/data/
+      - title: "Slack"
+        url: automation/slack/
+  - title: Data
+    children:
+      - title: "DB"
+        url: data/db/
+  - title: Programming
+    children:
       - title: "Python"
-        url: /categories/python/
+        url: programming/python/
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
