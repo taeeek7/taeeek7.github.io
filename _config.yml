@@ -104,10 +104,10 @@ analytics:
 
 # Site Author
 author:
-  name             : "Taegyeong Lee"
+  name             : "Tin's De"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
   bio              : "업무 자동화/데이터 분석 개발 노트"
-  location         : "Seoul.KOR"
+  location         : "Seoul, South Korea"
   email            : "taekyoung78@gmail.com"
   links:
     - label: "Email"

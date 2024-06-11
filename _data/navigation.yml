@@ -1,12 +1,9 @@
-# main links
-main:
-  - title: "Automation"
-    url: https://mmistakes.github.io/minimal-mistakes/docs/quick-start-guide/
-  - title: "Data Analysis"
-    url: https://mmistakes.github.io/minimal-mistakes/about/
-  - title: "Python"
-    url: /year-archive/
-  # - title: "Sample Collections"
-  #   url: /collection-archive/
-  # - title: "Sitemap"
-  #   url: /sitemap/
+docs:
+  - title: Menu
+    children:
+      - title: "Automation"
+        url: /docs/automation/
+      - title: "Data"
+        url: /docs/data/
+      - title: "Python"
+        url: /docs/python/
