@@ -1,22 +1,26 @@
-categories:
-  - title: Automation
-    children:
-      - title: "Slack"
-        url: /automation/slack/
-      - title: "Notion"
-        url: /automation/notion/
-  - title: Data
-    children:
-      - title: "SQL"
-        url: /data/sql/
-      - title: "analysis"
-        url: /data/analysis/
-  - title: Programming
-    children:
-      - title: "Python"
-        url: /programming/python/
-      - title: "Dart"
-        url: /programming/dart/
+# main links
+main: 
+  - title: "Category"
+    url: /categories/
+# categories:
+#   - title: Automation
+#     children:
+#       - title: "Slack"
+#         url: /automation/slack/
+#       - title: "Notion"
+#         url: /automation/notion/
+#   - title: Data
+#     children:
+#       - title: "SQL"
+#         url: /data/sql/
+#       - title: "analysis"
+#         url: /data/analysis/
+#   - title: Programming
+#     children:
+#       - title: "Python"
+#         url: /programming/python/
+#       - title: "Dart"
+#         url: /programming/dart/
   
 
 counts: 
