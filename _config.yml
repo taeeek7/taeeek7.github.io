@@ -104,9 +104,9 @@ analytics:
 
 # Site Author
 author:
-  name             : "Tin's Dev Blog"
+  name             : "🌈개발 관련 끄적끄적 블로그"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "업무 자동화/데이터 분석 개발 노트"
+  bio              : "업무자동화/클라우드/데이터분석 등등 <br> 적고 싶은거 다 적는 블로그입니다.🙂🙃"
   location         : "Seoul, South Korea"
   email            : "taekyoung78@gmail.com"
   links:
