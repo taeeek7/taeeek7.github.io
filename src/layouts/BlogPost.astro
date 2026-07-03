@@ -1,0 +1,108 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import { tagSlug } from '../utils';
+
+interface PostLink {
+  slug: string;
+  title: string;
+}
+interface Props {
+  title: string;
+  description: string;
+  pubDate: Date;
+  updatedDate?: Date;
+  tags?: string[];
+  older?: PostLink | null;
+  newer?: PostLink | null;
+}
+const { title, description, pubDate, updatedDate, tags = [], older, newer } = Astro.props;
+---
+
+<html lang="ko">
+  <head>
+    <BaseHead title={title} description={description} />
+  </head>
+  <body>
+    <Header />
+    <main class="wrap">
+      <article>
+        <header class="post-head">
+          <div class="meta">
+            <FormattedDate date={pubDate} />
+            {updatedDate && <span class="updated">· 수정 <FormattedDate date={updatedDate} /></span>}
+          </div>
+          <h1>{title}</h1>
+          {description && <p class="desc">{description}</p>}
+          {tags.length > 0 && (
+            <ul class="tags">
+              {tags.map((t) => (
+                <li><a href={`/tags/${tagSlug(t)}/`}>#{t}</a></li>
+              ))}
+            </ul>
+          )}
+        </header>
+        <div class="content">
+          <slot />
+        </div>
+
+        {(older || newer) && (
+          <nav class="post-nav">
+            {older ? (
+              <a class="prev" href={`/blog/${older.slug}/`}>
+                <span class="dir">← 이전 글</span>
+                <span class="t">{older.title}</span>
+              </a>
+            ) : <span></span>}
+            {newer ? (
+              <a class="next" href={`/blog/${newer.slug}/`}>
+                <span class="dir">다음 글 →</span>
+                <span class="t">{newer.title}</span>
+              </a>
+            ) : <span></span>}
+          </nav>
+        )}
+      </article>
+    </main>
+    <Footer />
+
+    <style>
+      .post-head { margin: 2.5rem 0 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border); }
+      .meta { color: var(--text-soft); font-size: 0.9rem; margin-bottom: 0.6rem; }
+      .updated { margin-left: 0.3rem; }
+      .desc { color: var(--text-soft); font-size: 1.05rem; margin-top: 0.4rem; }
+      .tags { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 1rem 0 0; }
+      .tags a { font-size: 0.8rem; color: var(--accent); background: var(--accent-soft); padding: 3px 10px; border-radius: 999px; }
+      .tags a:hover { text-decoration: none; filter: brightness(0.97); }
+      .content { padding-bottom: 2rem; }
+
+      .post-nav {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--border);
+      }
+      .post-nav a {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: var(--text);
+      }
+      .post-nav a:hover { text-decoration: none; border-color: var(--accent); }
+      .post-nav .next { text-align: right; }
+      .post-nav .dir { font-size: 0.8rem; color: var(--text-soft); }
+      .post-nav .t { font-weight: 600; font-size: 0.95rem; }
+      @media (max-width: 560px) {
+        .post-nav { grid-template-columns: 1fr; }
+        .post-nav .next { text-align: left; }
+      }
+    </style>
+  </body>
+</html>

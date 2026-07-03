@@ -1,0 +1,74 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import { tagSlug } from '../../utils';
+import { SITE_TITLE } from '../../consts';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => !data.draft);
+  const map = new Map<string, { display: string; posts: typeof posts }>();
+  for (const p of posts) {
+    for (const t of p.data.tags ?? []) {
+      const s = tagSlug(t);
+      if (!map.has(s)) map.set(s, { display: t, posts: [] });
+      map.get(s)!.posts.push(p);
+    }
+  }
+  return [...map.entries()].map(([slug, { display, posts }]) => ({
+    params: { tag: slug },
+    props: {
+      display,
+      posts: posts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()),
+    },
+  }));
+}
+
+const { display, posts } = Astro.props;
+---
+
+<html lang="ko">
+  <head>
+    <BaseHead title={`#${display}`} description={`'${display}' 태그가 붙은 글`} />
+  </head>
+  <body>
+    <Header />
+    <main class="wrap">
+      <div class="head">
+        <a href="/blog" class="back">← 전체 글</a>
+        <h1>#{display}</h1>
+        <p class="count">{posts.length}편</p>
+      </div>
+      <ul class="list">
+        {posts.map((post) => (
+          <li>
+            <a href={`/blog/${post.id}/`}>
+              <FormattedDate date={post.data.pubDate} />
+              <span class="t">{post.data.title}</span>
+              {post.data.description && <span class="d">{post.data.description}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </main>
+    <Footer />
+
+    <style>
+      .head { margin: 3rem 0 1.5rem; }
+      .back { font-size: 0.9rem; }
+      .head h1 { margin: 0.6rem 0 0.2rem; }
+      .count { color: var(--text-soft); margin: 0; }
+      .list { list-style: none; padding: 0; margin: 0; }
+      .list li { border-top: 1px solid var(--border); }
+      .list li:last-child { border-bottom: 1px solid var(--border); }
+      .list a { display: block; padding: 1.1rem 0; color: var(--text); }
+      .list a:hover { text-decoration: none; }
+      .list a:hover .t { color: var(--accent); }
+      .list time { color: var(--text-soft); font-size: 0.82rem; }
+      .list .t { display: block; font-weight: 600; font-size: 1.1rem; margin: 0.2rem 0; }
+      .list .d { display: block; color: var(--text-soft); font-size: 0.92rem; }
+    </style>
+  </body>
+</html>

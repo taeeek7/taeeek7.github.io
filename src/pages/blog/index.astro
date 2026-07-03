@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import { SITE_TITLE } from '../../consts';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+
+<html lang="ko">
+  <head>
+    <BaseHead title="글" description={`${SITE_TITLE}의 모든 글`} />
+  </head>
+  <body>
+    <Header />
+    <main class="wrap">
+      <h1 class="page-title">글</h1>
+      <ul class="list">
+        {posts.map((post) => (
+          <li>
+            <a href={`/blog/${post.id}/`}>
+              <FormattedDate date={post.data.pubDate} />
+              <span class="t">{post.data.title}</span>
+              {post.data.description && <span class="d">{post.data.description}</span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </main>
+    <Footer />
+
+    <style>
+      .page-title { margin: 3rem 0 1.5rem; }
+      .list { list-style: none; padding: 0; margin: 0; }
+      .list li { border-top: 1px solid var(--border); }
+      .list li:last-child { border-bottom: 1px solid var(--border); }
+      .list a { display: block; padding: 1.1rem 0; color: var(--text); }
+      .list a:hover { text-decoration: none; }
+      .list a:hover .t { color: var(--accent); }
+      .list time { color: var(--text-soft); font-size: 0.82rem; }
+      .list .t { display: block; font-weight: 600; font-size: 1.1rem; margin: 0.2rem 0; }
+      .list .d { display: block; color: var(--text-soft); font-size: 0.92rem; }
+    </style>
+  </body>
+</html>

@@ -1,0 +1,68 @@
+---
+import { getCollection } from 'astro:content';
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+const recent = posts.slice(0, 5);
+---
+
+<html lang="ko">
+  <head>
+    <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+  </head>
+  <body>
+    <Header />
+    <main class="wrap">
+      <section class="hero">
+        <h1>데이터·AI 프로덕트를 만드는 과정을 기록합니다.</h1>
+        <p>
+          데이터 엔지니어로 일하며 데이터/AI 제품을 직접 기획하고 만듭니다.
+          그 과정에서 내린 결정과 실패, 배운 것을 여기에 남깁니다. — 이태경 (Tin)
+        </p>
+      </section>
+
+      <section class="recent">
+        <div class="section-head">
+          <h2>최근 글</h2>
+          <a href="/blog">전체 보기 →</a>
+        </div>
+        <ul class="list">
+          {recent.map((post) => (
+            <li>
+              <a href={`/blog/${post.id}/`}>
+                <span class="t">{post.data.title}</span>
+                <FormattedDate date={post.data.pubDate} />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </main>
+    <Footer />
+
+    <style>
+      .hero { margin: 3.5rem 0 3rem; }
+      .hero h1 { font-size: 1.9rem; }
+      .hero p { color: var(--text-soft); font-size: 1.05rem; max-width: 40rem; }
+      .section-head { display: flex; align-items: baseline; justify-content: space-between; }
+      .section-head a { font-size: 0.9rem; }
+      .list { list-style: none; padding: 0; margin: 1rem 0 0; }
+      .list li { border-top: 1px solid var(--border); }
+      .list li:last-child { border-bottom: 1px solid var(--border); }
+      .list a {
+        display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+        padding: 0.9rem 0; color: var(--text);
+      }
+      .list a:hover { text-decoration: none; }
+      .list a:hover .t { color: var(--accent); }
+      .list .t { font-weight: 600; }
+      .list time { color: var(--text-soft); font-size: 0.85rem; white-space: nowrap; }
+    </style>
+  </body>
+</html>
