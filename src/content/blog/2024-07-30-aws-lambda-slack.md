@@ -3,12 +3,13 @@ title: 'AWS Lambda로 슬랙 액션봇 만들기'
 description: '서버 없이 Lambda로 슬랙 인터랙션(버튼·액션)에 응답하는 봇을 만든 기록.'
 pubDate: 2024-07-30
 tags: ['AWS', 'Lambda', 'Slack']
-draft: true
 ---
 
-오늘은 AWS Lambda를 활용하여 슬랙에서 특정 버튼을 누르면 업무를 수행하는 슬랙봇을 만들어보겠다.
+오늘은 AWS Lambda를 활용해서 슬랙에서 특정 버튼을 누르면 업무를 수행하는 슬랙봇을 만들어보겠다.
 
-AWS Lambda는 AWS의 서버리스 서비스로 배포 및 유지보수가 쉽고, 이를 슬랙봇과 접목하여 다양한 운영 업무를 슬랙 내에서 해결할 수 있다!
+AWS Lambda는 AWS의 서버리스 서비스로 배포 및 유지보수가 쉽고, 이를 슬랙봇과 접목하면 다양한 운영 업무를 슬랙 안에서 해결할 수 있다!
+
+> 예시로 만들 건: **처리 대상 목록을 슬랙에 뿌리고, 각 항목의 "처리 요청" 버튼을 누르면 그 메시지에 자동으로 스레드가 달리는 봇.** (실제 업무 로직은 뺀 일반 예시)
 
 ## AWS Lambda란?
 >AWS Lambda는 서버리스 컴퓨팅 서비스<br/>
@@ -21,37 +22,37 @@ AWS Lambda는 AWS의 서버리스 서비스로 배포 및 유지보수가 쉽고
 
 <br/>
 
-슬랙봇 생성 방법은 이전 포스트에서 작성되어 있어 넘어가겠다!
+슬랙봇 생성 방법은 이전 포스트에 작성되어 있어 넘어가겠다!
 
 ## 1. 슬랙 메시지 템플릿 제작
-슬랙 메시지에서 어떤 기능을 동작시키는 버튼이나 드롭다운 항목을 포함시키려면 json형태로 된 메시지 블럭을 발송해야한다.<br/>
-이런 메시지 템플릿을 샘플로 쉽게 만들어 볼 수 있게 슬랙에서 제공하는 웹페이지가 있다.<br/>
+슬랙 메시지에 어떤 기능을 동작시키는 버튼이나 드롭다운을 포함시키려면 json 형태의 메시지 블럭을 발송해야 한다.<br/>
+이런 템플릿을 샘플로 쉽게 만들어볼 수 있게 슬랙에서 제공하는 웹페이지가 있다.<br/>
 > [slack block kit](https://app.slack.com/block-kit-builder) <br/>
 
-여기서 여러가지 형태의 메시지 블럭을 넣으면 json 형태로 변환해준다. 이 사이트를 활용해서 액션 버튼이 포함된 슬랙 메시지 템플릿을 만들어봤다.
+여기서 여러 형태의 메시지 블럭을 넣으면 json으로 변환해준다. 이 사이트를 활용해서 액션 버튼이 포함된 슬랙 메시지 템플릿을 만들어봤다.
 
-```
-def penalty_list_section(company_name) :
+```python
+def make_request_list_section():
         blocks = []
 
-        df = MessageTemplate.client_claim_list(company_name= company_name)
-        for i in range (0, len(df)) :
-            hold_text_format = f"test"
-            keeper_section = {
+        # 실제로는 DB에서 처리 대상 목록을 가져온다 (여기선 일반 예시)
+        df = get_request_list()
+        for i in range(0, len(df)):
+            item_section = {
                 "type": "section",
-                "block_id": f"keeper_section_{i}",
+                "block_id": f"item_section_{i}",
                 "text": {
                     "type": "mrkdwn",
-                    "text": f"{df.iloc[i,0]}\n\n {df.iloc[i,1]}({df.iloc[i,2]}) / {df.iloc[i,3]}({df.iloc[i,4]}) → 포인트 감점 (-300p) / {df.iloc[i,5]}"
+                    "text": f"*{df.iloc[i,0]}*\n{df.iloc[i,1]} / {df.iloc[i,2]}"
                 }
             }
-            trigger_section = {
+            context_section = {
                 "type": "context",
-                "block_id": f"trigger_section_{i}",
+                "block_id": f"context_section_{i}",
                 "elements": [
                     {
                         "type": "plain_text",
-                        "text": f"접수건 확인 ⬇️⬇️ <아래 메시지 키로 검색 가능> \n\n {df.iloc[i,9]}",
+                        "text": f"접수건 키: {df.iloc[i,3]}",
                         "emoji": True
                     }
                 ]
@@ -64,165 +65,144 @@ def penalty_list_section(company_name) :
                         "type": "button",
                         "text": {
                             "type": "plain_text",
-                            "text": "감점 요청",
+                            "text": "처리 요청",
                             "emoji": True
                         },
-                        "value": f"{df.iloc[i,9]},{df.iloc[i,7]},{hold_text_format}",
-                        "action_id": "penalty_saction"
+                        "value": f"{df.iloc[i,3]},{df.iloc[i,4]}",
+                        "action_id": "process_action"
                     }
                 ]
             }
-            divider = {
-                "type": "divider"
-            }
-            
-            blocks.append(keeper_section)
-            blocks.append(trigger_section)
+            divider = {"type": "divider"}
+
+            blocks.append(item_section)
+            blocks.append(context_section)
             blocks.append(button_action)
             blocks.append(divider)
-        
+
         return blocks
 ```
 
-작성한 메시지 템플릿 예시다. 슬랙 메시지 구조를 간단히 살펴보면 블럭마다 타입과 고유 id가 존재해야 하며, 타입에 따라 elements, value, action 등 다양한 파라미터가 따라 붙는다. 이 속성들을 block kit을 통해 확인하고 파이썬으로 조합하여 템플릿을 만들어봤다. <br/><br/>
-block_id 같은 경우 명시하지 않으면 슬랙에서 랜덤으로 붙여서 메시지를 보내지만, 이후 AWS Lambda에서 필요한 메시지 블럭을 찾아 특정 기능을 수행해야하기 때문에 block_id를 고유한 id로 붙이는 작업도 진행했다.<br/>
+작성한 메시지 템플릿 예시다. 슬랙 메시지 구조를 간단히 보면 블럭마다 타입과 고유 id가 있어야 하고, 타입에 따라 elements, value, action 등 다양한 파라미터가 붙는다. 이 속성들을 block kit으로 확인하고 파이썬으로 조합해서 템플릿을 만들었다.<br/><br/>
+`block_id`는 명시하지 않으면 슬랙이 랜덤으로 붙여서 보내는데, 이후 AWS Lambda에서 필요한 블럭을 찾아 특정 기능을 수행해야 하기 때문에 고유한 id로 붙이는 작업도 했다.<br/>
 
 ## 2. 슬랙 메시지 전송
-이렇게 작업한 슬랙 메시지를 슬랙봇으로 발송할 차례이다. <br/>
-나는 슬랙 메시지를 전송하는 클래스를 불러와서 위 block 함수를 불러와 전송하는 방식으로 진행했다.
+이렇게 만든 슬랙 메시지를 봇으로 발송할 차례다.<br/>
+나는 슬랙 메시지를 전송하는 클래스를 불러와서 위 block 함수를 태워 전송하는 방식으로 진행했다.
 
-```
-// 슬랙봇 발송 클래스  
+```python
+# 슬랙봇 발송 클래스
 
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
-class SlackBot :
-        
+class SlackBot:
+
         # 생성자
-        def __init__(self, *args) :
+        def __init__(self, *args):
                 self.slack_token = args[0]
                 self.slack_channel = args[1]
-        
-        # 슬랙메시지발송 함수 
-        def send_messages(self, text) : 
 
-                ### 슬랙 API 및 메시지 발송 변수 설정 ###
+        # 슬랙 메시지 발송 함수
+        def send_messages(self, text):
                 client_slack = WebClient(token=self.slack_token)
-
-                try : 
+                try:
                         client_slack.chat_postMessage(
-                                channel= self.slack_channel
-                                ,text=  text 
+                                channel=self.slack_channel,
+                                text=text,
                         )
-                        
-                except SlackApiError as e :
+                except SlackApiError as e:
                         assert e.response["error"]
 
         # slack Block-Kit 발송 함수
-        def send_block_kit(self, text, blocks) : 
-
-                ### 슬랙 API 및 메시지 발송 변수 설정 ###
+        def send_block_kit(self, text, blocks):
                 client_slack = WebClient(token=self.slack_token)
-
-                try : 
+                try:
                         client_slack.chat_postMessage(
-                                channel= self.slack_channel
-                                ,text=  text
-                                ,blocks= blocks 
+                                channel=self.slack_channel,
+                                text=text,
+                                blocks=blocks,
                         )
-                        
-                except SlackApiError as e :
+                except SlackApiError as e:
                         assert e.response["error"]
-        
+
         # 스레드(reply) 발송 함수
-        def send_threads(self, thread_ts, text) : 
-
-                ### 슬랙 API 및 메시지 발송 변수 설정 ###
+        def send_threads(self, thread_ts, text):
                 client_slack = WebClient(token=self.slack_token)
-
-                try : 
+                try:
                         client_slack.chat_postMessage(
-                                channel= self.slack_channel
-                                ,thread_ts= thread_ts
-                                ,text=  text
+                                channel=self.slack_channel,
+                                thread_ts=thread_ts,
+                                text=text,
                         )
-                        
-                except SlackApiError as e :
+                except SlackApiError as e:
                         assert e.response["error"]
-
 ```
+
 <br/>
-<br/>
 
-```
-// 슬랙 block-kit 메시지 발송 예시
+```python
+# 슬랙 block-kit 메시지 발송 예시
 
- # 슬랙봇 발송 - 대상자 리스트
-                SlackBot(slack_token, channel).send_block_kit(
-                    text= "대상자 리스트"
-                    ,blocks= penalty_list_section(company_name)
-                )
-
+SlackBot(slack_token, channel).send_block_kit(
+    text="처리 대상 리스트",
+    blocks=make_request_list_section(),
+)
 ```
 - 메시지 발송 예시
 
-<center><img src="https://github.com/user-attachments/assets/959286af-5513-4665-a6ad-cf00593bcad4" width= "500" height= "200"/></center>
+<center><img src="https://github.com/user-attachments/assets/959286af-5513-4665-a6ad-cf00593bcad4" width="500" height="200"/></center>
 
 <br/>
 <br/>
-
 
 ## 3. AWS Lambda 기본 세팅
 
-드디어 람다 차례이다. 구현해볼 것은 전송된 메시지에서 "감점 요청" 버튼을 눌렀을 때, 자동으로 해당 메시지에 스레드가 달리게 하는 람다 함수를 작성해보겠다. <br/>
+드디어 람다 차례다. 구현할 건 전송된 메시지에서 "처리 요청" 버튼을 눌렀을 때, 자동으로 해당 메시지에 스레드가 달리게 하는 람다 함수다.<br/>
 
-AWS Lambda > 함수 생성에서 원하는 언어를 선택하고 함수를 생성한다. 런타임과 아키텍처 정보는 이후 레이어에서 필요하므로 기억하기.<br/>
+AWS Lambda > 함수 생성에서 원하는 언어를 선택하고 함수를 만든다. 런타임과 아키텍처 정보는 이후 레이어에서 필요하니 기억해두기.<br/>
 
-<center><img src="https://github.com/user-attachments/assets/97543933-04f8-4042-bcdd-12a214db5ec3" width= "700" height= "700"/></center>
+<center><img src="https://github.com/user-attachments/assets/97543933-04f8-4042-bcdd-12a214db5ec3" width="700" height="700"/></center>
 
 <br/>
 <br/>
 
-### 2-1. AWS Lambda Layer 만들기
+### 3-1. AWS Lambda Layer 만들기
 
-Lambda > layer 에서 계층을 만들건데, 이는 Lambda 함수에서 필요한 라이브러리를 담아놓은 압축파일을 올리는 과정이라고 보면 된다. 이 작업이 없으면 람다를 돌렸을 때 모듈 에러가 날수도 .. <br/>
+Lambda > layer에서 계층을 만든다. 이건 Lambda 함수에서 필요한 라이브러리를 담은 압축파일을 올리는 과정이라고 보면 된다. 이 작업이 없으면 람다를 돌렸을 때 모듈 에러가 날 수도..<br/>
 
 - 압축파일 만드는 순서
-1. 먼저 'python' 이라는 폴더를 만들고, 터미널을 이용해 그 폴더 안에 필요한 라이브러리를 다운 받는다. (설치 명령어 pip install {패키지명} -t .)
-2. python 폴더 내에 패키지가 설치된 것을 확인
-3. 폴더 압축 
-4. AWS Lambda 콘솔에서 '계층' 메뉴에 들어가, '계층 생성'을 누른다.
-5. 계층 생성을 할 때 아까 만든 python.zip 파일을 업로드한다. <br/>
-        -   여기서 아까 람다 함수를 생성할 때 설정했던 아키텍처와 호환 런타임이 동일해야 함!!!
+1. `python`이라는 폴더를 만들고, 터미널에서 그 폴더 안에 필요한 라이브러리를 다운받는다. (`pip install {패키지명} -t .`)
+2. python 폴더 안에 패키지가 설치된 것 확인
+3. 폴더 압축
+4. AWS Lambda 콘솔 '계층' 메뉴 > '계층 생성'
+5. 아까 만든 python.zip 업로드<br/>
+        - 람다 함수 생성 때 설정한 아키텍처와 호환 런타임이 동일해야 함!!!
 6. 생성한 람다 함수에서 Add a layer > 사용자 지정 계층 > 생성한 계층 선택
 
+### 3-2. AWS Lambda 환경변수 설정
 
-### 2-2. AWS Lambda 환경변수 설정
-
-환경변수는 보안을 위해 꼭꼭꼭 필요한 설정이다. 보안과 연관된 키나 정보들은 퍼블릭한 코드에 하드코딩하지말고, 환경변수에 정의한 후 쓰는 것을 습관화하자<br/>
+환경변수는 보안을 위해 꼭꼭꼭 필요하다. 키나 민감 정보는 퍼블릭 코드에 하드코딩하지 말고, 환경변수에 정의한 후 쓰는 걸 습관화하자.<br/>
 
 - 환경변수 설정
-1. 생성한 람다 함수에서 구성 > 환경변수 > 편집 클릭
+1. 람다 함수 > 구성 > 환경변수 > 편집
 2. key - value 추가
 3. 변경사항 저장
 
+### 3-3. API Gateway 슬랙봇 연결
 
-### 2-3. API Gateway 슬랙봇 연결
-
-람다가 슬랙봇의 액션을 이벤트로 감지하기 위해 람다의 이벤트 트리거를 API Gateway로 설정하고 API Gateway의 엔드포인트를 슬랙봇에 연결해줘야 한다. <br/>
-이 부분에서 초기 슬랙봇 세팅 시 슬랙에서 challenge라는 파라미터를 받아서 검증하는 과정이 있는데 오늘은 간략히만 설명하고 넘어가겠다. 다음에 더 자세히 다루는걸로 ...  <br/>
-
+람다가 슬랙봇의 액션을 이벤트로 감지하려면, 람다의 이벤트 트리거를 API Gateway로 설정하고 그 엔드포인트를 슬랙봇에 연결해줘야 한다.<br/>
+이때 초기 슬랙봇 세팅에서 슬랙이 `challenge` 파라미터를 보내 검증하는 과정이 있는데, 오늘은 간략히만 짚고 넘어가겠다. 다음에 더 자세히..<br/>
 
 - API Gateway 슬랙봇 연결
-1. aws 람다 함수 생성 후 코드 작성
+1. 람다 함수 생성 후 코드 작성
 
-```
+```python
 import json
- 
+
 def lambda_handler(event, context):
     body = json.loads(event['body'])
-    
+
     # Challenge 요청을 확인하고 응답
     if 'challenge' in body:
         return {
@@ -233,96 +213,78 @@ def lambda_handler(event, context):
 
 2. API Gateway를 REST API로 설정
         - 메서드는 POST
-        - 람다 통합 연결 시 프록시 통합으로 필요 (proxy integration)
+        - 람다 통합 연결 시 프록시 통합 필요 (proxy integration)
 
-<center><img src="https://github.com/user-attachments/assets/5d7d8ee0-bde7-494c-a9b8-195bec84b9ff" width= "500" height= "500"/></center>
-        
-3. 엔드포인트 획득하기
-4. 슬랙 앱 구성 Interactivity & Shortcuts 에서 Request API에 API Gateway 엔드포인트 넣기
-5. challenge 인증 확인하기
+<center><img src="https://github.com/user-attachments/assets/5d7d8ee0-bde7-494c-a9b8-195bec84b9ff" width="500" height="500"/></center>
 
-
-<br/>
-<br/>
-
-이 작업을 통해 생성한 슬랙봇이 발송하거나 액션한 메시지를 AWS Lambda가 이벤트로 감지하게 된다.
+3. 엔드포인트 획득
+4. 슬랙 앱 구성 Interactivity & Shortcuts에서 Request API에 API Gateway 엔드포인트 넣기
+5. challenge 인증 확인
 
 <br/>
+<br/>
 
-## 3. AWS Lambda function 작성
+이 작업을 통해 슬랙봇이 발송하거나 액션한 메시지를 AWS Lambda가 이벤트로 감지하게 된다.
 
-이제 실제 기능을 수행하는 코드를 작성해보자. 
+<br/>
 
-```
-from SlackBot import SlackBot 
-from DataMigration import EditDatabase
+## 4. AWS Lambda function 작성
+
+이제 실제 기능을 수행하는 코드를 작성해보자.
+
+```python
+from SlackBot import SlackBot
 import json, os
 import urllib.parse
- 
-# 환경 변수에서 슬랙 토큰을 가져옵니다.
-slack_token = os.environ['AlarmBotToken']
-host = os.environ['host']
-user = os.environ['user']
-password = os.environ['password']
-db = os.environ['db']
- 
+
+# 환경변수에서 값 가져오기 (하드코딩 금지!)
+slack_token = os.environ['SlackBotToken']
 
 def lambda_handler(event, context):
     body = urllib.parse.unquote(event['body']).replace("payload=", "")
     data = json.loads(body)
     action_id = data['actions'][0]['action_id']
-    username = data['user']['username']
-    slack_error_channel = 'C06FQURRGCS'
 
-    if action_id == 'penalty_action' :
-        try :
-            # 기본 정보 파싱  
+    if action_id == 'process_action':
+        try:
+            # 버튼 value 파싱
             value = data['actions'][0]['value']
-            root_trigger_id, pay_point, message_text = value.split(',')
+            item_key, message_text = value.split(',')
             channel_id = data['container']['channel_id']
             ts = data['container']['message_ts']
             user_id = data['user']['id']
-            
+
             reform_text = message_text.replace("+", " ")
-            
+
             # 스레드 전송
-            SlackBot(slack_token, channel_id).send_threads(thread_ts= ts, text= f"{reform_text} \n\n 요청자: <@{user_id}>")
+            SlackBot(slack_token, channel_id).send_threads(
+                thread_ts=ts,
+                text=f"{reform_text}\n\n요청자: <@{user_id}>",
+            )
             print("스레드 전송 완료")
-    
+
             # 결과 반환 (이벤트 재전송 방지)
-            return {
-                'statusCode': 200,
-                'body': json.dumps('스레드 전송 성공')
-            }
-        except Exception as e :
+            return {'statusCode': 200, 'body': json.dumps('스레드 전송 성공')}
+        except Exception as e:
             raise e
-    
-    else :
+
+    else:
         print("적합한 액션이 아닙니다.")
-        
-        # 결과 반환 (이벤트 재전송 방지)
-        return {
-            'statusCode': 200,
-            'body': json.dumps('적합한 액션이 아닙니다.')
-        }  
+        return {'statusCode': 200, 'body': json.dumps('적합한 액션이 아닙니다.')}
 ```
 
 <br/>
 
-- lambda_function 작성 시 주의할 점 
-    - 코드를 종료시키려면 "return {}" 값을 명시해줘야 함. 안하면 완료가 안된것으로 보고 2번 3번 계속 함수를 실행시킴
-    - 이벤트로 인해 오는 body값을 잘 확인해서 json 형태로 파싱할 수 있게 가공해야 함.
+- lambda_function 작성 시 주의할 점
+    - 코드를 종료시키려면 `return {}` 값을 명시해야 함. 안 하면 완료가 안 된 것으로 보고 함수를 2번, 3번 계속 실행시킴
+    - 이벤트로 오는 body값을 잘 확인해서 json으로 파싱할 수 있게 가공해야 함
 
 <br/>
 
-이렇게 작성한 함수의 이벤트 결과는 Cloud Watch를 통해 확인할 수 있다.  (모니터링 > Cloud Watch logs 보기)
+이렇게 작성한 함수의 이벤트 결과는 CloudWatch로 확인할 수 있다. (모니터링 > CloudWatch logs 보기)
 
 <br/>
 
-위와 같이 함수를 작성하고 배포한 결과 슬랙봇에 액션 버튼을 눌렀을 때, 스레드가 잘 전송됨을 확인하였다!!<br/>
-확실히 서버리스 서비스라 에러가 나도 바로바로 원인을 찾고 수정 후 배포할 수 있어서 편했고,  Cloud Watch로 로그도 자세히 볼 수 있어서 편한 것 같다.<br/>
-람다 + 슬랙봇 (+ API Gateway) 조합으로 다양한 업무를 자동화 해볼 수 있을 것 같다!
-
-
-
-
+위와 같이 함수를 작성·배포한 결과, 슬랙봇의 액션 버튼을 눌렀을 때 스레드가 잘 전송됨을 확인했다!!<br/>
+확실히 서버리스라 에러가 나도 바로바로 원인 찾고 수정 후 배포할 수 있어서 편했고, CloudWatch로 로그도 자세히 볼 수 있어 좋았다.<br/>
+람다 + 슬랙봇 (+ API Gateway) 조합으로 다양한 업무를 자동화해볼 수 있을 것 같다!

@@ -36,7 +36,7 @@ draft: false   # true면 빌드에서 제외
 
 ## 배포
 
-`master` 브랜치에 push하면 GitHub Actions가 빌드→배포합니다 (`.github/workflows/deploy.yml`).
+`main` 브랜치에 push하면 GitHub Actions가 빌드→배포합니다 (`.github/workflows/deploy.yml`).
 
 ⚙️ **최초 1회 설정 필요**: GitHub 저장소 → Settings → Pages → Build and deployment →
 **Source: GitHub Actions** 로 변경.
