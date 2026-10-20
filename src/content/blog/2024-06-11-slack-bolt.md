@@ -5,17 +5,15 @@ pubDate: 2024-06-11
 tags: ['Slack', 'Python', '슬랙봇']
 ---
 
-슬랙에서의 업무 생산성을 높이기 위해 하나의 채널에서 요청사항을 접수하고 답변하는 슬랙봇을 만들기로 했다.
+업무 요청을 한 채널에서 받고 답변할 수 있도록 슬랙봇을 만들기로 했다.
 
-슬랙봇을 만드는 방법은 다양하지만 모달창을 띄우거나 이모지를 달았을 때 반응하는 등의 기능을 구현하기 위해, 
-
-슬랙에서 제공하는 자체 라이브러리인 `slack_bolt`를 사용하기로 결정
+모달창을 띄우고 이모지 반응도 처리해야 해서 슬랙에서 제공하는 Python 라이브러리 `slack_bolt`를 골랐다.
 
 ### slack_bolt란?
 
->slack_bolt는 Slack에서 제공하는 Python용 프레임워크로, 봇 개발을 쉽게 해주는 도구<br/>
->메시지 응답, 명령 실행, 이벤트 처리 등을 간편하게 구현 가능<br/>
->특히 이벤트 기반의 프로그래밍 모델을 사용하므로 봇의 인터랙션을 직관적으로 설계 가능
+>slack_bolt는 Slack의 Python용 봇 개발 프레임워크다.<br/>
+>메시지 응답, 명령 실행, 이벤트 처리를 지원한다.<br/>
+>이벤트별로 함수를 연결해 봇의 동작을 정의할 수 있다.
 
 
 ### 패키지 다운로드
@@ -36,12 +34,12 @@ app = App(token= slack_bot_token) ## 슬랙 API 페이지에서 생성한 슬랙
 def message_hello(message, say) :
     if message["text"] == "안녕" :
         say("어쩌라고?!👻")
-    else : 
+    else :
         pass
 
 
 # main 함수
-if __name__ == "__main__" : 
+if __name__ == "__main__" :
     SocketModeHandler(app, slack_app_token).start() ## 슬랙 API 페이지에서 생성한 슬랙앱의 app token이 필요합니다.
 
 ```
@@ -49,6 +47,6 @@ if __name__ == "__main__" :
 
 다른 기능 구현이 필요한 경우 `@app.~~~` 을 위에 붙이고 함수를 정의하면 된다.
 
-다양한 이벤트 메서드는 아래 공식 문서를 참고바람!
+다른 이벤트 메서드는 공식 문서에서 확인할 수 있다.
 
 https://slack.dev/bolt-python/tutorial/getting-started

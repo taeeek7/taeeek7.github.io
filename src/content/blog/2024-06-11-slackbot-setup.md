@@ -5,7 +5,7 @@ pubDate: 2024-06-11
 tags: ['Slack', '슬랙봇']
 ---
 
-이번에는 슬랙 API 페이지에서 슬랙 앱을 만들고 기본적인 세팅 방법을 알아보자.
+슬랙 API 페이지에서 앱을 만들고, 메시지 발송과 이벤트 수신에 필요한 설정을 해봤다.
 
 먼저 아래 페이지 오른쪽 상단에 your apps로 들어간다. <br/>
 https://api.slack.com/
@@ -27,26 +27,25 @@ https://api.slack.com/
 
 
 ## 3. 권한 설정
-- OAuth & Permissions에서 기본 권한으로 기본 권한으로 `chat:write.public` `chat:write` `channels:history` 3가지를 설정해준다.
+- OAuth & Permissions에서 기본 권한으로 `chat:write.public` `chat:write` `channels:history` 3가지를 설정해준다.
 
 <center><img src="https://github.com/taeeek7/taeeek7.github.io/assets/141909748/7b94d9f4-ddd7-4048-80a9-16e91f0e1d77" width= "650" height= "500"/></center>
 
 
 ## 4. install to workspace
-- 워크스페이스에 해당 슬랙앱을 설치해주면 끝!
+- 워크스페이스에 슬랙 앱을 설치한다.
 
 <br/>
 <br/>
 
-위 단계까지만 하면 기본적으로 슬랙봇이 메시지를 발송한다거나 슬랙봇으로 기존 메시지를 읽는 것 정도가 가능하다. 
-이 외 특정 이벤트를 인식하여 어떤 동작을 하는 슬랙봇을 만들고 싶다면 아래 단계를 마저 설정해야 가능!
+여기까지 설정하면 봇으로 메시지를 보내거나 기존 메시지를 읽을 수 있다. 특정 이벤트를 받아 처리하려면 아래 설정도 필요하다.
 <br/>
 <br/>
 
-## 반응형 슬랙봇이 필요하다면? 
+## 반응형 슬랙봇이 필요하다면?
 
 1. Basic Information > App-Level Tokens > Generate Token and Scopes 클릭
-2. 토큰 이름 작성 후 기본 옵션 설정 
+2. 토큰 이름 작성 후 기본 옵션 설정
     - `connections:write`
     <center><img src="https://github.com/taeeek7/taeeek7.github.io/assets/141909748/4822fe06-4c28-489f-b0b0-1ed11347fcde" width= "450" height= "450"/></center>
 3. Socket Mode > Enable Socket Mode 체크 설정
@@ -60,4 +59,4 @@ https://api.slack.com/
 <br/>
 <br/>
 
-이정도면 기본적인 설정은 된 것 같다.
+이제 메시지 발송과 이벤트 수신을 위한 기본 설정이 끝났다.
