@@ -3,7 +3,7 @@ title: 'dbt Docs를 상시 제공하기까지: git-sync 갱신과 헬스체크 �
 description: 'Airflow의 git-sync에 dbt Docs 자동 갱신을 연결하고, 문서 요청 중 반복되던 연결 종료 오류를 헬스체크 분리로 해결한 과정을 정리합니다.'
 pubDate: 2026-10-20
 tags: ['data', 'dbt', 'Airflow', 'Kubernetes', 'data engineering']
-draft: true
+draft: false
 ---
 
 dbt 모델과 문서를 작성한 뒤에는 팀에서 편하게 열어볼 수 있는 주소가 필요했습니다. 처음에는 Pod 안에서 Python HTTP 서버를 띄우고 포트 포워딩으로 접근했습니다. 제가 확인할 때는 쓸 수 있었지만, 문서를 볼 때마다 연결을 준비해야 했습니다.
